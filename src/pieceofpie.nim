@@ -16,6 +16,7 @@ limitations under the License.
 
 import os
 import strutils
+import strformat
 
 let args = commandLineParams()
 let fileToCompile = args[0]
@@ -31,8 +32,9 @@ for line in fileToCompile.lines:
     var reala = a
     a.delete(0)
     var atostring = a.join(" ")
-    if cmpIgnoreCase(atostring[0..4], "!num ") == 0:
-      atostring.delete(0, 4)
+    if atostring.len >= 5:
+      if cmpIgnoreCase(atostring[0..4], "!num ") == 0:
+        atostring.delete(0, 4)
     for i, c in reala:
         if cmpIgnoreCase(c, "print") == 0:
             outputC.write("\tprintf(")
@@ -44,16 +46,9 @@ for line in fileToCompile.lines:
 outputC.write("}")
 outputC.close()
 echo "Done!\n"
-#[
-  echo "Compiling..."
-  let compileCmd = "gcc " & outputCName & " -o " & outputBinaryFile & ".exe"
-  echo "Compile command: "
-  echo compileCmd
-  echo ""
-  discard execShellCmd(compileCmd)
-  echo "Done! You must manually remove the .c file."
-  ^
-  |
-  |
-  Compiling is not done yet, so this is commented
-]#
+echo "Compiling..."
+let compileCmd = "gcc " & outputBinaryFile & ".c" & " -o " & outputBinaryFile & ".exe"
+echo fmt"Compile command: {compileCmd}"
+echo ""
+discard execShellCmd(compileCmd)
+removeFile(outputBinaryFile & ".c")
