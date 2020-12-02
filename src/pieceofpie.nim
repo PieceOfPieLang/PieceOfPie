@@ -21,7 +21,6 @@ let args = commandLineParams()
 let fileToCompile = args[0]
 let fileSplit = splitFile(fileToCompile)
 let outputBinaryFile = fileSplit.name
-let outputCName = outputBinaryFile & ".c"
 var outputC = open(outputBinaryFile & ".c", fmWrite)
 echo "Transpiling to C...."
 outputC.writeLine(r"#include <stdio.h>")
@@ -31,15 +30,19 @@ for line in fileToCompile.lines:
     var a = cast[string](line).split(' ')
     var reala = a
     a.delete(0)
+    var atostring = a.join(" ")
+    if cmpIgnoreCase(atostring[0..4], "!num ") == 0:
+      atostring.delete(0, 4)
     for i, c in reala:
         if cmpIgnoreCase(c, "print") == 0:
             outputC.write("\tprintf(")
             for i, c in a:
-                outputC.write(c)
-                if i != len(a) - 1:
-                  outputC.write(" ")
+                if cmpIgnoreCase(c, "!num") == 0:
+                  outputC.write("\"%d\", ")
+            outputC.write(atostring)
             outputC.writeLine(");")
 outputC.write("}")
+outputC.close()
 echo "Done!\n"
 #[
   echo "Compiling..."
